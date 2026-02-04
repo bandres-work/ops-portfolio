@@ -148,3 +148,28 @@ This system enables:
 ## Notes
 
 This project focuses on failure management logic rather than automation tools.
+---
+
+## Simulated Incidents and Recovery Examples
+
+To validate the failure and recovery system, a set of simulated automation incidents was documented.
+
+### Observed Incidents
+
+- **INC-001 (Trigger Failure)**  
+  Detected due to a missing scheduled execution. The automation was safely retried without side effects.
+
+- **INC-002 (Data Integrity Failure)**  
+  Detected when required fields were missing. Manual correction was required before reprocessing.
+
+- **INC-003 (Execution Failure)**  
+  API timeout detected through execution logs. A retry was successful after rate limits reset.
+
+- **INC-004 (Logic Failure)**  
+  Duplicate records identified post-execution. Partial rollback was required to restore consistency.
+
+- **INC-005 (Silent Failure)**  
+  Automation completed without errors but processed zero records. Execution was aborted and incident logged for review.
+
+These examples demonstrate how silent and non-silent failures are handled without relying on manual discovery.
+

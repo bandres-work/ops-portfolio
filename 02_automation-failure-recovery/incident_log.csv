@@ -1,0 +1,6 @@
+incident_id,failure_type,signal_detected,impact,recovery_action,status,notes
+INC-001,Trigger Failure,Missing scheduled run,High,Retry,Resolved,Scheduled trigger skipped for unknown reason
+INC-002,Data Integrity Failure,Missing required fields,Medium,Manual Correction,Resolved,Upstream form sent incomplete data
+INC-003,Execution Failure,API timeout,High,Retry,Resolved,External API rate limit exceeded
+INC-004,Logic Failure,Duplicate records created,Medium,Rollback,Resolved,Conditional path misconfigured
+INC-005,Silent Failure,Zero records processed,High,Abort,Logged,Automation completed but produced no output
