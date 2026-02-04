@@ -188,3 +188,59 @@ Recovery effectiveness is measured using Mean Time To Recovery (MTTR).
 - Logic failures require longer recovery due to data correction and rollback complexity.
 
 Tracking MTTR highlights where preventive investment provides the highest return.
+---
+
+## Alerting Logic
+
+Alerts are designed to surface failures early without creating alert fatigue.
+Only conditions that require operational attention trigger alerts.
+
+### Alert Triggers
+
+- **Missed Execution Alert**  
+  Triggered when an expected automation run does not occur within a defined time window.
+
+- **Data Integrity Alert**  
+  Triggered when required fields are missing or data validation rules fail.
+
+- **Execution Failure Alert**  
+  Triggered when an automation fails due to timeouts, authentication errors, or external API limits.
+
+- **Silent Failure Alert**  
+  Triggered when an automation completes successfully but produces zero output.
+
+---
+
+## Alert Severity Levels
+
+Alerts are classified by severity to guide response priority:
+
+- **Critical**  
+  Immediate operational risk or data loss. Requires immediate action.
+
+- **Warning**  
+  Degraded performance or partial failure. Action required but not urgent.
+
+- **Informational**  
+  Logged for visibility and trend analysis. No immediate action required.
+
+---
+
+## Alert-to-Action Mapping
+
+Each alert type is mapped to a predefined response:
+
+- Critical alerts trigger immediate investigation and recovery procedures.
+- Warning alerts trigger review and scheduled remediation.
+- Informational alerts are tracked for pattern detection.
+
+---
+
+## Alerting Principles
+
+- Alerts must be actionable.
+- Alerts must indicate what failed and why.
+- Alerts must avoid duplication.
+- Alerts must not rely on manual discovery.
+
+This alerting logic ensures failures are detected early without overwhelming operators.
