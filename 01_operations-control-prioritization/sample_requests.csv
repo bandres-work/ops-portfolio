@@ -1,0 +1,7 @@
+request_id,description,impact,urgency,risk,priority_score,priority_class,decision
+REQ-001,Payment gateway outage,5,5,5,125,P1,Accepted
+REQ-002,Minor UI text update,1,2,1,2,P4,Deferred
+REQ-003,Customer data sync delay,4,3,4,48,P2,Accepted
+REQ-004,Internal report formatting,2,2,1,4,P4,Rejected
+REQ-005,API rate limit warnings,3,4,4,48,P2,Accepted
+REQ-006,Non-critical feature request,2,1,1,2,P4,Deferred

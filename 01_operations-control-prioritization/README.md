@@ -124,3 +124,19 @@ This system enables:
 
 This project focuses on decision logic and system design rather than specific tools or platforms.
 
+---
+
+## Sample Data and Decision Examples
+
+To validate the prioritization model, a set of simulated operational requests was evaluated using the defined scoring logic.
+
+### Observed Decisions
+
+- **REQ-001** was classified as P1 due to maximum impact, urgency, and risk. This request was immediately accepted despite competing work.
+- **REQ-003** and **REQ-005** were prioritized over more urgent but lower-risk requests due to elevated risk scores.
+- **REQ-002** and **REQ-006** were deferred despite being easy to execute, as their low impact and risk did not justify capacity usage.
+- **REQ-004** was explicitly rejected, demonstrating that not all requests should enter execution.
+
+These examples illustrate how the system prevents low-value work from displacing critical operational tasks.
+
+
