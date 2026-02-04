@@ -112,3 +112,22 @@ This metrics-driven approach enables:
 ## Notes
 
 This project focuses on decision logic and dashboard intent rather than visualization tools.
+---
+
+## Sample Data and Threshold Evaluation
+
+Simulated weekly operational data was used to evaluate metric behavior under increasing demand.
+
+### Defined Thresholds
+
+- **Lead Time SLA**: ≤ 4 days  
+- **Rework Rate Threshold**: ≤ 10%  
+- **WIP Limit**: ≤ 20 active requests  
+
+### Observed Decisions
+
+- In Week 3, rework rate exceeded acceptable limits, triggering a review of intake quality.
+- In Week 4, both lead time and WIP crossed thresholds, indicating capacity overload.
+- Despite stable intake, throughput declined, suggesting bottlenecks rather than demand issues.
+
+These signals indicate when operational intervention is required rather than passive monitoring.

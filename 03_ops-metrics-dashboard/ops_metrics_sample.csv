@@ -1,0 +1,5 @@
+week,requests_received,requests_completed,avg_lead_time_days,rework_rate_percent,wip
+Week 1,45,40,3.2,5,12
+Week 2,50,42,3.8,7,15
+Week 3,60,45,4.5,12,22
+Week 4,55,38,5.1,14,28
