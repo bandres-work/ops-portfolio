@@ -173,3 +173,18 @@ To validate the failure and recovery system, a set of simulated automation incid
 
 These examples demonstrate how silent and non-silent failures are handled without relying on manual discovery.
 
+---
+
+## Post-Mortems and Recovery Metrics
+
+Each incident is followed by a lightweight post-mortem focused on root cause identification and preventive action.
+
+Recovery effectiveness is measured using Mean Time To Recovery (MTTR).
+
+### Observations
+
+- Silent failures show the highest detection times, representing the greatest operational risk.
+- Trigger and execution failures are recoverable quickly when detection signals are explicit.
+- Logic failures require longer recovery due to data correction and rollback complexity.
+
+Tracking MTTR highlights where preventive investment provides the highest return.

@@ -1,0 +1,6 @@
+incident_id,detection_time_minutes,recovery_time_minutes,mttr_minutes
+INC-001,5,10,15
+INC-002,15,30,45
+INC-003,10,20,30
+INC-004,20,40,60
+INC-005,30,0,30
