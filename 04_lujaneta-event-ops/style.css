@@ -1,0 +1,266 @@
+:root {
+  --primary: #0056b3; /* Azul Lujaneta */
+  --primary-hover: #004494;
+  --bg: #f4f4f9;
+  --card: #ffffff;
+  --text: #333;
+  --border: #ddd;
+  --error: #c0392b;
+  --success: #27ae60;
+  --warning-bg: #fff3cd;
+  --warning-text: #856404;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--bg);
+  color: var(--text);
+  margin: 0;
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.container {
+  background-color: var(--card);
+  max-width: 650px;
+  width: 100%;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+/* Encabezado */
+h1 {
+  text-align: center;
+  color: var(--primary);
+  margin-bottom: 5px;
+  font-size: 2em;
+}
+
+p.subtitle {
+  text-align: center;
+  color: #666;
+  font-size: 1em;
+  margin-bottom: 20px;
+}
+
+/* AVISO IMPORTANTE */
+.info-alert {
+  background-color: #e3f2fd;
+  border-left: 5px solid #2196f3;
+  padding: 15px;
+  margin-bottom: 25px;
+  border-radius: 4px;
+  font-size: 0.9em;
+  color: #0d47a1;
+  line-height: 1.5;
+}
+
+.info-alert strong {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 1.1em;
+}
+
+/* Secciones */
+.section-title {
+  background-color: #f8f9fa;
+  padding: 12px 15px;
+  border-left: 5px solid var(--primary);
+  margin-top: 30px;
+  margin-bottom: 20px;
+  font-weight: 700;
+  color: #2c3e50;
+  border-radius: 0 5px 5px 0;
+  text-transform: uppercase;
+  font-size: 0.9em;
+  letter-spacing: 0.5px;
+}
+
+/* Formularios */
+.form-group {
+  margin-bottom: 20px;
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  font-size: 0.95em;
+  color: #444;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="email"],
+input[type="date"],
+select,
+textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-sizing: border-box;
+  font-size: 16px;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--primary);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0,86,179,0.1);
+}
+
+/* Radio Buttons Estilizados (SI/NO) */
+.radio-group-container {
+  background: #fff;
+  padding: 15px;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.radio-options {
+  display: flex;
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.radio-label {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-weight: bold;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  transition: all 0.2s;
+  background: #fff;
+}
+
+.radio-label:hover {
+  background-color: #f0f7ff;
+  border-color: var(--primary);
+}
+
+.radio-label input[type="radio"] {
+  margin-right: 8px;
+  accent-color: var(--primary);
+  transform: scale(1.2);
+}
+
+/* Áreas de texto condicionales */
+.hidden-textarea {
+  display: none;
+  margin-top: 15px;
+  border-color: #f39c12;
+  background-color: #fffaf0;
+}
+
+.hidden-textarea.visible {
+  display: block;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Info de Pago */
+.payment-card {
+  background-color: #fff8e1;
+  border: 1px solid #ffe082;
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 25px;
+  text-align: center;
+}
+
+.payment-card h3 {
+  margin-top: 0;
+  color: #d35400;
+  font-size: 1.1em;
+}
+
+.payment-details {
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px dashed #d35400;
+  display: inline-block;
+  margin: 10px 0;
+  text-align: left;
+}
+
+.payment-details p {
+  margin: 5px 0;
+  font-family: monospace;
+  font-size: 1.1em;
+}
+
+/* Botón */
+button[type="submit"] {
+  width: 100%;
+  padding: 18px;
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.2em;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 20px;
+  transition: background 0.3s, transform 0.1s;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+button[type="submit"]:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-2px);
+}
+
+button:disabled {
+  background-color: #95a5a6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Checkbox final */
+.terms-container {
+  margin-top: 25px;
+  background: #f9f9f9;
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid #eee;
+}
+
+.terms-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 10px;
+  font-size: 0.9em;
+  color: #555;
+}
+
+.terms-check input {
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  flex-shrink: 0; /* Evita que el checkbox se aplaste */
+}
+
+/* Mensajes de estado */
+#status {
+  margin-top: 20px;
+  text-align: center;
+  font-weight: bold;
+  padding: 15px;
+  border-radius: 8px;
+}
