@@ -1,129 +1,91 @@
-# Pilgrimage Registration & Management System (Phase 1)
+# La Lujaneta – Pilgrimage Registration & Operations System
 
-## Project Overview
-This project automates participant registration and management for a pilgrimage through:
+**Phase 1: Digital Registration, Payment Auditing & Access Control**
 
-1. Online registration form.  
-2. Upload of payment proof.  
-3. Manual verification of payment by the operations team.  
-4. Automatic generation and email delivery of a unique QR code once payment is confirmed.  
-5. QR scanning at the event to mark attendance and kit delivery.  
+## 📌 Project Overview
+This project is a specialized Event Operations System designed to manage the annual pilgrimage "La Lujaneta" (Argentina). It automates the intake of thousands of participants, manages complex payment verification flows, and generates secure digital credentials (QR) for kit delivery and attendance tracking.
 
-> Phase 1 focuses on **digital registration, payment, and QR system**. Phase 2 will include physical ID cards, recurring payments tied to participant ID, and a full staff panel.
+Unlike standard form builders, this system handles **identity deduplication** (returning pilgrims are recognized automatically), **conditional medical logic**, and **secure payment proof uploads** directly to Supabase Storage.
 
----
+## 🚀 Key Features (Phase 1 - Implemented)
 
-## Database Model (Supabase / PostgreSQL)
+### 1. Smart Registration Frontend
+* **Identity Resolution:** The system checks if a participant exists by Document Number (DNI) before creating a new record. If they exist, it links the new registration to the existing identity, maintaining a clean history.
+* **Conditional Logic:** "Yes/No" toggles for Medical Conditions and Allergies. Detail fields only appear when necessary, keeping the UI clean.
+* **UX/UI:** Fully responsive design (Mobile First) using modern CSS variables.
+* **Payment Integration:** Displays local payment methods (CBU/Alias) and handles file uploads for transfer receipts.
 
-### Main Tables
+### 2. Robust Backend (Supabase / PostgreSQL)
+* **Row Level Security (RLS):** configured to allow public submissions (INSERT) while protecting sensitive data from unauthorized reading.
+* **Automated Auditing:** Custom PL/PGSQL triggers (`audit_changes`) log every insert, update, or delete action in the `audit_log` table.
+* **State Management:** Strict usage of PostgreSQL ENUMs for statuses:
+    * `payment_status`: Submitted → Verified / Rejected
+    * `kit_status`: NotEligible → Eligible → Delivered
+* **Storage Security:** Policies configured to allow public uploads of payment proofs only to the specific `payments` bucket.
 
-- **participants**  
-  Stores participant information.  
-  Example fields:  
-  - id (PK)  
-  - name  
-  - document_id  
-  - email  
-  - phone  
-  - medical_conditions  
+## 🛠️ Tech Stack
 
-- **events**  
-  Stores event details.  
-  Example fields:  
-  - id (PK)  
-  - name  
-  - date  
-  - location  
-  - price  
+* **Frontend:** HTML5, CSS3 (Custom Variables), JavaScript (ES6+ Modules).
+* **Backend:** Supabase (PostgreSQL 15+).
+* **Storage:** Supabase Storage (Image/PDF handling).
+* **Infrastructure:** Row Level Security (RLS), Database Triggers, PL/PGSQL Functions.
 
-- **registrations**  
-  Connects participants to events.  
-  Fields:  
-  - id (PK)  
-  - participant_id (FK)  
-  - event_id (FK)  
-  - registration_status (`Pending`, `Verified`, `CheckedIn`)  
-  - kit_status (`Pending`, `Delivered`)  
+## 🗄️ Database Model
 
-- **payments**  
-  Stores participant payments.  
-  Fields:  
-  - id (PK)  
-  - registration_id (FK)  
-  - amount  
-  - status (`Submitted`, `Verified`, `Rejected`)  
-  - proof_file_url  
+The system uses a relational model optimized for recurring events:
 
-- **qr_tokens**  
-  Stores generated QR codes for each participant.  
-  Fields:  
-  - id (PK)  
-  - participant_id (FK)  
-  - token (QR string)  
-  - generated_at (timestamp)  
+### Core Tables
+| Table | Description | Key Fields |
+| :--- | :--- | :--- |
+| **`participants`** | Stores unique human identity. | `id`, `doc_number`, `medical_flag`, `full_name` |
+| **`events`** | Configuration for specific pilgrimage years. | `id`, `event_code`, `price`, `active` |
+| **`registrations`** | Links a participant to an event. | `id`, `status`, `kit_status`, `fitness_level` |
+| **`payments`** | Tracks financial transactions & proofs. | `id`, `amount`, `proof_url`, `status` (ENUM) |
+| **`checkins`** | Operational logs for the event day. | `id`, `scanned_by`, `scanned_at`, `result` |
 
-- **checkin_logs**  
-  Audit log of check-ins.  
-  Fields:  
-  - id (PK)  
-  - participant_id (FK)  
-  - event_id (FK)  
-  - checkin_time  
-  - staff_id (who performed the check-in)  
+### Security & Automation
+* **`qr_tokens`**: Stores the secure string used for QR generation.
+* **`audit_log`**: JSONB storage for tracking all data changes.
+* **Triggers**:
+    * `trg_sync_kit_status`: Automatically updates kit eligibility when payment is verified.
+    * `trg_scan_qr`: Handles the logic when a QR is scanned (checks payment, logs attendance).
 
----
+## ⚙️ Operational Flows
 
-## Operational Flows
+1.  **Registration:** User fills the web form. JS checks for duplicates.
+2.  **Upload:** Payment proof is uploaded to Supabase Storage.
+3.  **Submission:** Data is inserted into `participants` (if new), `registrations`, and `payments`.
+4.  **Verification (Next Step):** Ops team reviews proof via Admin Panel.
+5.  **QR Dispatch (Next Step):** System emails the QR code upon verification.
 
-1. **Registration**  
-   - Participant fills out the web form.  
-   - Uploads payment proof.  
-   - Data is stored in `participants` and `registrations`.  
+## 📥 Setup & Installation
 
-2. **Manual Payment Verification**  
-   - Operations team reviews payment proof.  
-   - Sets `payments.status` to `Verified`.  
-   - Trigger automatically updates `registrations.registration_status` to `Verified`.  
+1.  **Clone the Repository**
+    ```bash
+    git clone [https://github.com/your-username/ops-portfolio.git](https://github.com/your-username/ops-portfolio.git)
+    cd ops-portfolio/04_lujaneta-event-ops
+    ```
 
-3. **QR Generation & Email**  
-   - Trigger/function generates a unique QR when registration is verified.  
-   - QR is automatically emailed to the participant.  
+2.  **Database Setup**
+    * Create a new project in [Supabase](https://supabase.com).
+    * Copy the content of `database_setup.sql`.
+    * Run it in the Supabase **SQL Editor** to create tables, enums, and triggers.
 
-4. **Event Check-in**  
-   - Staff scans participant QR with minimal app.  
-   - System validates registration and payment.  
-   - `registrations.registration_status` updated to `CheckedIn`, `kit_status` updated to `Delivered`.  
-   - Audit logs record staff and timestamp in `checkin_logs`.  
+3.  **Storage Setup**
+    * Create a public bucket named `payments`.
+    * Run the storage policy SQL to allow public uploads.
 
----
+4.  **Frontend Configuration**
+    * Open `script.js`.
+    * Update `SUPABASE_URL` and `SUPABASE_KEY` (Anon) with your project credentials.
+    * Update `EVENT_ID` with the UUID of the active event.
 
-## Roles & Row-Level Security (RLS)
+5.  **Run**
+    * Open `index.html` in your browser (or use Live Server).
 
-- **Admin**: Full access, can create events and modify any record.  
-- **Ops/Staff**: Limited access to verify payments and record check-ins.  
-- **Participants**: Access only to the registration form and their QR.  
+## 🔮 Roadmap (Phase 2)
 
-> All access controlled through **RLS policies** in Supabase.
+* **Admin Dashboard:** Private panel for Operations Staff to approve/reject payments visually.
+* **Email Automation:** Edge Function to send the QR code via email upon `payment_status = 'Verified'`.
+* **Scanner App:** Mobile-friendly interface for the Check-in Staff to scan QRs at the event.
 
----
-
-## Setup Instructions (Supabase / PostgreSQL)
-
-1. Create a Supabase project.  
-2. Create tables based on the data model above.  
-3. Add triggers/functions for:  
-   - Updating registration status when payment is verified.  
-   - Automatically generating QR codes.  
-   - Logging check-ins and kit delivery.  
-4. Configure RLS and roles.  
-5. (Optional) Insert test data using SQL or the registration form.  
-
----
-
-## Testing & Demo
-
-- Create a test event with date, location, and price.  
-- Register several participants via the web form.  
-- Upload payment proofs.  
-- Verify payments manually and confirm QR codes are generated and emailed.  
-- Simulate QR scan at event and verify `CheckedIn` and `kit_status` updates.  
