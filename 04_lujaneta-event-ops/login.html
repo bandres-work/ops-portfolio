@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acceso Staff - La Lujaneta</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { background-color: #0056b3; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+    .login-card { background: white; padding: 40px; border-radius: 12px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+    .login-card h1 { color: #333; margin-bottom: 5px; }
+    .login-card p { color: #666; margin-bottom: 30px; }
+    input { width: 100%; padding: 15px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+    button { width: 100%; padding: 15px; background: #0056b3; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+    button:hover { background: #004494; }
+    button:disabled { background: #ccc; cursor: not-allowed; }
+    .error { color: #b91c1c; margin-top: 15px; font-size: 0.9em; display: none; background: #fee2e2; padding: 10px; border-radius: 4px; border: 1px solid #fca5a5; }
+  </style>
+</head>
+<body>
+  <div class="login-card">
+    <div style="font-size: 3em; margin-bottom: 10px;">🛡️</div>
+    <h1>Acceso Restringido</h1>
+    <p>Solo personal autorizado de La Lujaneta</p>
+    
+    <div id="loginArea">
+        <input type="email" id="email" placeholder="usuario@lujaneta.com">
+        <input type="password" id="password" placeholder="Contraseña">
+        <button id="loginBtn" onclick="handleLogin()">INGRESAR AL SISTEMA</button>
+    </div>
+    
+    <div id="errorMsg" class="error"></div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://xsutpmbhvzuvjpwwyoli.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhzdXRwbWJodnp1dmpwd3d5b2xpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzNzUwNTMsImV4cCI6MjA4NTk1MTA1M30.ym7wCHRwpit-4OaHM9V3JSzbR-baH1WfEYIAFfbAgBo';
+    
+    // CORRECCIÓN AQUÍ: Usamos 'supabaseClient'
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    async function handleLogin() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const errorMsg = document.getElementById('errorMsg');
+      const btn = document.getElementById('loginBtn');
+
+      // 1. Limpieza inicial
+      console.log("1. Iniciando intento de login para:", email);
+      errorMsg.style.display = 'none';
+      btn.textContent = "Verificando...";
+      btn.disabled = true;
+
+      try {
+        // 2. Intentar Loguearse con supabaseClient (la variable corregida)
+        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+
+        if (error) {
+          console.error("Error de Auth:", error);
+          throw new Error(error.message);
+        }
+
+        console.log("2. Login correcto. Usuario ID:", data.user.id);
+
+        // 3. Verificar Rol en la tabla user_roles
+        const { data: roleData, error: roleError } = await supabaseClient
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', data.user.id)
+          .eq('active', true)
+          .maybeSingle();
+
+        if (roleError) {
+            console.error("Error buscando rol:", roleError);
+            throw new Error("Error verificando permisos (Base de Datos).");
+        }
+
+        if (!roleData) {
+            console.warn("Usuario sin rol asignado en la tabla user_roles");
+            await supabaseClient.auth.signOut(); // Lo sacamos por seguridad
+            throw new Error("No tienes un ROL asignado. Contacta al Admin.");
+        }
+
+        console.log("3. Rol encontrado:", roleData.role);
+
+        // 4. Éxito total
+        localStorage.setItem('userRole', roleData.role);
+        btn.textContent = "¡Acceso Permitido!";
+        btn.style.backgroundColor = "#27ae60";
+        
+        setTimeout(() => {
+            window.location.href = 'admin.html';
+        }, 1000);
+
+      } catch (err) {
+        // MANEJO DE ERRORES VISIBLE
+        let mensaje = err.message;
+        
+        if (mensaje.includes("Invalid login credentials")) mensaje = "Correo o contraseña incorrectos.";
+        
+        errorMsg.textContent = "⚠️ " + mensaje;
+        errorMsg.style.display = 'block';
+        btn.textContent = "INGRESAR AL SISTEMA";
+        btn.disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>
