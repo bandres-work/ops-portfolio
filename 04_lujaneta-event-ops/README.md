@@ -1,91 +1,110 @@
 # La Lujaneta – Pilgrimage Registration & Operations System
 
-**Phase 1: Digital Registration, Payment Auditing & Access Control**
+![Status](https://img.shields.io/badge/Status-Production%20Ready-success)
+![Version](https://img.shields.io/badge/Version-v7.0-blue)
+![Security](https://img.shields.io/badge/Security-RLS%20Protected-red)
+![Stack](https://img.shields.io/badge/Tech-Supabase%20%7C%20JS%20Vanilla%20%7C%20PostgreSQL-3ecf8e)
 
 ## 📌 Project Overview
-This project is a specialized Event Operations System designed to manage the annual pilgrimage "La Lujaneta" (Argentina). It automates the intake of thousands of participants, manages complex payment verification flows, and generates secure digital credentials (QR) for kit delivery and attendance tracking.
 
-Unlike standard form builders, this system handles **identity deduplication** (returning pilgrims are recognized automatically), **conditional medical logic**, and **secure payment proof uploads** directly to Supabase Storage.
+**La Lujaneta Ops** is a specialized, full-stack Event Operations System designed to manage the logistics, security, and access control for large-scale pilgrimages in Argentina.
 
-## 🚀 Key Features (Phase 1 - Implemented)
+Unlike standard form builders, this system functions as a tailored **Operational CRM** that handles the entire participant lifecycle: from identity verification and payment auditing to high-speed biometric/QR access control in the field.
 
-### 1. Smart Registration Frontend
-* **Identity Resolution:** The system checks if a participant exists by Document Number (DNI) before creating a new record. If they exist, it links the new registration to the existing identity, maintaining a clean history.
-* **Conditional Logic:** "Yes/No" toggles for Medical Conditions and Allergies. Detail fields only appear when necessary, keeping the UI clean.
-* **UX/UI:** Fully responsive design (Mobile First) using modern CSS variables.
-* **Payment Integration:** Displays local payment methods (CBU/Alias) and handles file uploads for transfer receipts.
+**Key Engineering Highlight:** The system features a **"Zero-Friction" Access Control** architecture (Scanner V7) with hybrid inputs (Camera/Manual), "Anti-Freeze" camera logic for low-end devices, and a persistent **Conflictive User Blacklist** to ensure staff safety.
 
-### 2. Robust Backend (Supabase / PostgreSQL)
-* **Row Level Security (RLS):** configured to allow public submissions (INSERT) while protecting sensitive data from unauthorized reading.
-* **Automated Auditing:** Custom PL/PGSQL triggers (`audit_changes`) log every insert, update, or delete action in the `audit_log` table.
-* **State Management:** Strict usage of PostgreSQL ENUMs for statuses:
-    * `payment_status`: Submitted → Verified / Rejected
-    * `kit_status`: NotEligible → Eligible → Delivered
-* **Storage Security:** Policies configured to allow public uploads of payment proofs only to the specific `payments` bucket.
+---
 
-## 🛠️ Tech Stack
+## 🚀 Key Modules & Features
 
-* **Frontend:** HTML5, CSS3 (Custom Variables), JavaScript (ES6+ Modules).
-* **Backend:** Supabase (PostgreSQL 15+).
-* **Storage:** Supabase Storage (Image/PDF handling).
-* **Infrastructure:** Row Level Security (RLS), Database Triggers, PL/PGSQL Functions.
+### 1. Smart Registration Portal (`index.html`)
+A mobile-first frontend optimized for high-conversion data entry and data integrity.
+* **Identity Resolution:** The system checks the `doc_number` against the historical `participants` database before creating a record. This prevents duplicates and links new registrations to existing medical histories.
+* **Conditional Logic:** Dynamic UI that only requests specific medical/allergy details if the user toggles the corresponding flags.
+* **Secure Storage:** Direct integration with **Supabase Storage** for secure, UUID-linked payment proof uploads.
 
-## 🗄️ Database Model
+### 2. Operations Dashboard (`admin.html`)
+A "God Mode" protected panel for the Operations and Finance teams.
+* **Real-Time KPIs:** Live monitoring of Total Registrations, Verified Revenue, and Pending Audits.
+* **Visual Auditing:** A modal interface to inspect payment receipts side-by-side with user data for rapid Approve/Reject decisions.
+* **Behavioral Risk Management (Blacklist):** Staff can flag participants as "Conflictive" (e.g., for past aggression). This flag is **persistent** across years/events and triggers immediate security alerts upon future interactions.
+* **Data Export:** One-click generation of sanitized `.csv` reports for logistics planning (transport, t-shirt sizes).
 
-The system uses a relational model optimized for recurring events:
+### 3. Field Scanner V7 (`scanner.html`)
+A robust PWA-like web scanner designed for high-stress, low-connectivity environments.
+* **Hybrid Input System:**
+    * **Camera:** High-speed UUID QR scanning using `html5-qrcode`.
+    * **Manual Fallback:** Dedicated DNI search for users with broken screens or dead batteries.
+* **Intelligent Validation Logic:**
+    1.  **Identity Check:** Does the user exist?
+    2.  **Registration Check:** Is the user registered for *this specific event*?
+    3.  **Status Check:** Has the kit already been delivered? (Prevents double-dipping).
+    4.  **Security Check:** **Is the user flagged as Conflictive?** (Triggers a severe Black/Red alert).
+    5.  **Health Check:** Does the user have critical medical conditions? (Triggers a Red alert).
+* **"Anti-Freeze" Logic:** A custom algorithm that automatically manages the camera lifecycle (Stop/Start) to prevent browser freezes on mobile devices after scanning.
 
-### Core Tables
-| Table | Description | Key Fields |
+---
+
+## 🛠️ Technical Architecture
+
+The system is built on a **Serverless / BaaS (Backend as a Service)** architecture to maximize scalability and minimize maintenance costs.
+
+| Component | Technology | Description |
 | :--- | :--- | :--- |
-| **`participants`** | Stores unique human identity. | `id`, `doc_number`, `medical_flag`, `full_name` |
-| **`events`** | Configuration for specific pilgrimage years. | `id`, `event_code`, `price`, `active` |
-| **`registrations`** | Links a participant to an event. | `id`, `status`, `kit_status`, `fitness_level` |
-| **`payments`** | Tracks financial transactions & proofs. | `id`, `amount`, `proof_url`, `status` (ENUM) |
-| **`checkins`** | Operational logs for the event day. | `id`, `scanned_by`, `scanned_at`, `result` |
+| **Frontend** | Vanilla JS (ES6+) | No frameworks, no build steps. Optimized for raw performance (<1s load time). |
+| **Backend** | Supabase | Provides Authentication, Database, and Storage APIs. |
+| **Database** | PostgreSQL 15 | Relational model with strong data integrity (Foreign Keys, Constraints). |
+| **Security** | RLS (Row Level Security) | Database policies ensure public users can only `INSERT`, while only authenticated Staff can `SELECT`/`UPDATE`. |
+| **Scanning** | Html5-Qrcode | Browser-based barcode recognition library. |
 
-### Security & Automation
-* **`qr_tokens`**: Stores the secure string used for QR generation.
-* **`audit_log`**: JSONB storage for tracking all data changes.
-* **Triggers**:
-    * `trg_sync_kit_status`: Automatically updates kit eligibility when payment is verified.
-    * `trg_scan_qr`: Handles the logic when a QR is scanned (checks payment, logs attendance).
+### Database Schema (Simplified)
 
-## ⚙️ Operational Flows
+The data model separates the *Person* from the *Event Registration* to allow multi-year history tracking.
 
-1.  **Registration:** User fills the web form. JS checks for duplicates.
-2.  **Upload:** Payment proof is uploaded to Supabase Storage.
-3.  **Submission:** Data is inserted into `participants` (if new), `registrations`, and `payments`.
-4.  **Verification (Next Step):** Ops team reviews proof via Admin Panel.
-5.  **QR Dispatch (Next Step):** System emails the QR code upon verification.
+* **`participants`**: (The User) `id`, `doc_number`, `full_name`, `medical_notes`, `is_flagged` (Blacklist), `flag_notes`.
+* **`registrations`**: (The Link) `id`, `participant_id`, `event_id`, `payment_status` (ENUM), `kit_status` (ENUM), `checked_in`.
+* **`payments`**: (The Transaction) `id`, `registration_id`, `proof_url`, `amount`, `status`.
+
+---
+
+## 🛡️ Security & Access Control
+
+* **Session Guard:** Critical operational files (`admin.html`, `scanner.html`) implement a strict session check on load. If `supabase.auth.getSession()` returns null, the user is forcibly redirected to the Login page.
+* **Role-Based Logic:** The dashboard UI adapts based on the user's role. "Approve/Reject" buttons are removed for read-only staff.
+* **Input Sanitization:** All database interactions use parameterized Supabase client methods to prevent SQL Injection.
+
+---
 
 ## 📥 Setup & Installation
 
-1.  **Clone the Repository**
+1.  **Clone the Repository:**
     ```bash
-    git clone [https://github.com/your-username/ops-portfolio.git](https://github.com/your-username/ops-portfolio.git)
-    cd ops-portfolio/04_lujaneta-event-ops
+    git clone [https://github.com/bandres-wrk/ops-portfolio.git](https://github.com/bandres-wrk/ops-portfolio.git)
     ```
 
-2.  **Database Setup**
-    * Create a new project in [Supabase](https://supabase.com).
-    * Copy the content of `database_setup.sql`.
-    * Run it in the Supabase **SQL Editor** to create tables, enums, and triggers.
+2.  **Supabase Configuration:**
+    * Create a new project on [Supabase](https://supabase.com).
+    * Run the `database_setup.sql` script (included in repo) in the SQL Editor to create tables and RLS policies.
+    * Create a public storage bucket named `payments`.
 
-3.  **Storage Setup**
-    * Create a public bucket named `payments`.
-    * Run the storage policy SQL to allow public uploads.
+3.  **Environment Variables:**
+    * Open `script.js`, `admin.js`, and `scanner.html`.
+    * Replace `const SUPABASE_URL` and `const SUPABASE_KEY` with your project's API credentials.
 
-4.  **Frontend Configuration**
-    * Open `script.js`.
-    * Update `SUPABASE_URL` and `SUPABASE_KEY` (Anon) with your project credentials.
-    * Update `EVENT_ID` with the UUID of the active event.
+4.  **Deploy:**
+    * The project is static. You can drag and drop the folder into **Netlify** or serve it via **GitHub Pages**.
 
-5.  **Run**
-    * Open `index.html` in your browser (or use Live Server).
+---
 
-## 🔮 Roadmap (Phase 2)
+## 🔮 Future Roadmap
 
-* **Admin Dashboard:** Private panel for Operations Staff to approve/reject payments visually.
-* **Email Automation:** Edge Function to send the QR code via email upon `payment_status = 'Verified'`.
-* **Scanner App:** Mobile-friendly interface for the Check-in Staff to scan QRs at the event.
+* **Automated Emails:** Implement Supabase Edge Functions to send the QR code via email immediately upon payment verification.
+* **Offline Mode:** Implement Service Workers (PWA) to allow the scanner to cache database subsets and function without internet connectivity.
+* **Metrics Dashboard:** Advanced data visualization for "Peak Arrival Times" and revenue forecasting.
+
+---
+
+<p align="center">
+  Built with ❤️ for La Lujaneta Logistics Team
+</p>
 
