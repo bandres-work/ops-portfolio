@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acceso Staff - La Lujaneta</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Open+Sans:wght@400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <style>
+    /* --- ESTILOS VISUALES (TU MARCA) --- */
+    :root {
+      --primary: #004a99; /* Azul Lujaneta */
+      --accent: #d4af37;  /* Dorado */
+      --bg: #e9ecef;
+      --white: #ffffff;
+    }
+
+    body { 
+      background-color: var(--bg); 
+      font-family: 'Open Sans', sans-serif;
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      height: 100vh; 
+      margin: 0; 
+    }
+
+    .login-container {
+      width: 100%;
+      max-width: 400px;
+      padding: 20px;
+    }
+
+    .login-card { 
+      background: var(--white); 
+      padding: 40px 30px; 
+      border-radius: 15px; 
+      text-align: center; 
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
+      border-top: 5px solid var(--primary);
+    }
+
+    .logo {
+      width: 100px;
+      height: auto;
+      margin-bottom: 15px;
+    }
+
+    h1 { 
+      color: var(--primary); 
+      font-family: 'Montserrat', sans-serif; 
+      margin: 0 0 5px 0; 
+      font-size: 1.8em; 
+    }
+    
+    p.subtitle { 
+      color: #666; 
+      margin-bottom: 30px; 
+      font-size: 0.9em; 
+    }
+
+    /* Inputs con Iconos */
+    .input-group {
+      position: relative;
+      margin-bottom: 20px;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #a0aec0;
+    }
+
+    input { 
+      width: 100%; 
+      padding: 15px 15px 15px 45px; /* Espacio para el icono */
+      border: 2px solid #e1e5eb; 
+      border-radius: 8px; 
+      font-size: 16px; 
+      box-sizing: border-box; 
+      transition: 0.3s;
+    }
+
+    input:focus {
+      border-color: var(--primary);
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(0,74,153,0.1);
+    }
+
+    /* Ojito Ver Contraseña */
+    .toggle-password {
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      color: #a0aec0;
+    }
+    .toggle-password:hover { color: var(--primary); }
+
+    button { 
+      width: 100%; 
+      padding: 15px; 
+      background: linear-gradient(to right, var(--primary), #0066cc); 
+      color: white; 
+      border: none; 
+      border-radius: 50px; 
+      font-size: 16px; 
+      font-weight: bold; 
+      cursor: pointer; 
+      transition: 0.3s; 
+      margin-top: 10px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    
+    button:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.15); }
+    button:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+
+    .error { 
+      color: #b91c1c; 
+      margin-top: 20px; 
+      font-size: 0.9em; 
+      display: none; 
+      background: #fee2e2; 
+      padding: 12px; 
+      border-radius: 8px; 
+      border: 1px solid #fca5a5; 
+    }
+
+    .copyright { margin-top: 20px; color: #aaa; font-size: 0.8em; }
+  </style>
+</head>
+<body>
+
+  <div class="login-container">
+    <div class="login-card">
+      <img src="logo.png" alt="Logo La Lujaneta" class="logo">
+      
+      <h1>Acceso Staff</h1>
+      <p class="subtitle">Solo personal autorizado</p>
+      
+      <div id="loginArea">
+         <div class="input-group">
+            <i class="fas fa-envelope input-icon"></i>
+            <input type="email" id="email" placeholder="usuario@lujaneta.com">
+         </div>
+         
+         <div class="input-group">
+            <i class="fas fa-lock input-icon"></i>
+            <input type="password" id="password" placeholder="Contraseña">
+            <i class="fas fa-eye toggle-password" onclick="togglePasswordVisibility()"></i>
+         </div>
+
+         <button id="loginBtn" onclick="handleLogin()">INGRESAR AL SISTEMA</button>
+      </div>
+      
+      <div id="errorMsg" class="error"></div>
+    </div>
+    <div class="copyright">© 2026 La Lujaneta - Sistema Interno</div>
+  </div>
+
+  <script>
+    // --- TU LÓGICA DE SUPABASE INTACTA ---
+    const SUPABASE_URL = 'https://xsutpmbhvzuvjpwwyoli.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhzdXRwbWJodnp1dmpwd3d5b2xpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzNzUwNTMsImV4cCI6MjA4NTk1MTA1M30.ym7wCHRwpit-4OaHM9V3JSzbR-baH1WfEYIAFfbAgBo';
+    
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // Función VISUAL para el ojito (No afecta la base de datos)
+    function togglePasswordVisibility() {
+        const passwordInput = document.getElementById('password');
+        const icon = document.querySelector('.toggle-password');
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            passwordInput.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    }
+
+    async function handleLogin() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const errorMsg = document.getElementById('errorMsg');
+      const btn = document.getElementById('loginBtn');
+
+      // 1. Limpieza inicial
+      console.log("1. Iniciando intento de login para:", email);
+      errorMsg.style.display = 'none';
+      btn.textContent = "Verificando...";
+      btn.disabled = true;
+
+      try {
+        // 2. Intentar Loguearse
+        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+
+        if (error) {
+          console.error("Error de Auth:", error);
+          throw new Error(error.message);
+        }
+
+        console.log("2. Login correcto. Usuario ID:", data.user.id);
+
+        // 3. Verificar Rol en la tabla user_roles
+        const { data: roleData, error: roleError } = await supabaseClient
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', data.user.id)
+          .eq('active', true)
+          .maybeSingle();
+
+        if (roleError) {
+            console.error("Error buscando rol:", roleError);
+            throw new Error("Error verificando permisos (Base de Datos).");
+        }
+
+        if (!roleData) {
+            console.warn("Usuario sin rol asignado en la tabla user_roles");
+            await supabaseClient.auth.signOut(); // Lo sacamos por seguridad
+            throw new Error("No tienes un ROL asignado. Contacta al Admin.");
+        }
+
+        console.log("3. Rol encontrado:", roleData.role);
+
+        // 4. Éxito total
+        localStorage.setItem('userRole', roleData.role);
+        btn.textContent = "¡Acceso Permitido!";
+        btn.style.backgroundColor = "#27ae60";
+        
+        setTimeout(() => {
+            window.location.href = 'admin.html';
+        }, 1000);
+
+      } catch (err) {
+        // MANEJO DE ERRORES VISIBLE
+        let mensaje = err.message;
+        
+        if (mensaje.includes("Invalid login credentials")) mensaje = "Correo o contraseña incorrectos.";
+        
+        errorMsg.textContent = "⚠️ " + mensaje;
+        errorMsg.style.display = 'block';
+        btn.textContent = "INGRESAR AL SISTEMA";
+        btn.disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>

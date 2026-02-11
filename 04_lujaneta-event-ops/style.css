@@ -1,0 +1,173 @@
+/* --- PEGA ESTO EN TU style.css --- */
+:root {
+  --primary: #004a99;
+  --accent: #d4af37;
+  --bg: #f0f2f5;
+  --white: #ffffff;
+}
+
+body {
+  font-family: 'Open Sans', sans-serif;
+  background-color: var(--bg);
+  margin: 0;
+  padding: 20px;
+  color: #333;
+}
+
+.main-container { max-width: 700px; margin: 0 auto; }
+
+/* HEADER */
+.form-header { text-align: center; margin-bottom: 25px; }
+.logo { width: 100px; height: auto; }
+.form-header h1 { font-family: 'Montserrat', sans-serif; color: var(--primary); margin: 10px 0 5px 0; }
+.subtitle { color: #666; margin: 0; font-weight: 600; }
+
+/* CARD PRINCIPAL */
+.form-card {
+  background: var(--white);
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  border-top: 5px solid var(--primary);
+}
+
+/* ALERTAS */
+.info-alert {
+  background: #e3f2fd;
+  color: #0d47a1;
+  padding: 15px;
+  border-radius: 8px;
+  border-left: 4px solid #2196f3;
+  display: flex; gap: 15px; align-items: start;
+  margin-bottom: 25px;
+  font-size: 0.9em;
+}
+
+/* TITULOS DE SECCION */
+.section-title {
+  background: #f8f9fa;
+  padding: 10px 15px;
+  font-weight: 700;
+  color: var(--primary);
+  border-left: 4px solid var(--primary);
+  margin: 30px 0 15px 0;
+  text-transform: uppercase;
+  font-size: 0.9em;
+  letter-spacing: 0.5px;
+}
+
+/* INPUTS Y LABELS */
+.form-group { margin-bottom: 20px; }
+label { display: block; font-weight: 600; margin-bottom: 8px; font-size: 0.95em; color: #444; }
+
+input[type="text"], input[type="email"], input[type="number"], input[type="date"], select, textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--primary);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0,74,153,0.1);
+}
+
+/* FILAS DE 2 COLUMNAS */
+.row { display: flex; gap: 15px; }
+.half { flex: 1; }
+
+/* RADIO BUTTONS (SI/NO) */
+.radio-options { display: flex; gap: 20px; margin-bottom: 10px; }
+.radio-btn { font-weight: normal; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+.radio-btn input { width: 18px; height: 18px; accent-color: var(--primary); }
+
+/* CAJAS DE TEXTO OCULTAS */
+.hidden-box {
+  display: none;
+  margin-top: 10px;
+  border-color: #f39c12 !important;
+  background: #fffcf5;
+}
+
+/* ESTILO NUEVO CAJA AMARILLA DE PAGO (COMO TU FOTO) */
+.payment-yellow-card {
+    background-color: #fff8e1; /* Amarillo muy suave */
+    border: 1px solid #ffecb3;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 25px;
+}
+.payment-yellow-card h4 {
+    color: #d35400;
+    margin-top: 0;
+    margin-bottom: 5px;
+}
+.dashed-box {
+    border: 2px dashed #d35400; /* Borde punteado naranja/marron */
+    padding: 15px;
+    border-radius: 8px;
+    background: #fff;
+    display: inline-block;
+    text-align: left;
+}
+.dashed-box p { margin: 5px 0; font-family: monospace; font-size: 1.1em; color: #333; }
+
+/* CHECKBOXES (Términos) */
+.terms-group { background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #eee; margin-bottom: 20px; }
+.checkbox-item { display: flex; gap: 10px; margin-bottom: 10px; align-items: flex-start; }
+.checkbox-item input { margin-top: 5px; width: 18px; height: 18px; accent-color: var(--primary); flex-shrink: 0; }
+.checkbox-item label { font-weight: 400; font-size: 0.9em; line-height: 1.4; margin: 0; }
+
+/* BOTON */
+button[type="submit"] {
+  width: 100%;
+  padding: 18px;
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1em;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s;
+}
+button[type="submit"]:hover { background-color: #003377; }
+
+/* --- ESTILO MÓVIL (PARA CELULARES) --- */
+@media (max-width: 600px) {
+  
+  /* 1. Que las filas dobles se pongan una abajo de la otra */
+  .row {
+    flex-direction: column;
+    gap: 0;
+  }
+  
+  /* 2. Márgenes más chicos para aprovechar la pantalla */
+  .main-container { padding: 10px; }
+  .form-card { padding: 20px 15px; }
+  
+  /* 3. Título un poco más chico para que no ocupe tanto */
+  .form-header h1 { font-size: 1.8em; }
+  
+  /* 4. Botones SI/NO más grandes para el dedo */
+  .radio-options {
+    flex-direction: row; /* Mantener lado a lado */
+    gap: 10px;
+  }
+  .radio-btn {
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    padding: 12px;
+    border-radius: 8px;
+    flex: 1; /* Que ocupen el 50% cada uno */
+    justify-content: center;
+    font-weight: bold;
+  }
+  
+  /* 5. Ajuste visual para la caja amarilla */
+  .payment-yellow-card { padding: 15px; }
+  .dashed-box { width: 100%; box-sizing: border-box; }
+}

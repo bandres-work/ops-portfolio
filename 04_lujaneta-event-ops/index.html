@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscripción - La Lujaneta 2026</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Estilos extra para el mensaje de éxito */
+        #successMessage {
+            display: none; /* Oculto por defecto */
+            text-align: center;
+            background: #e8f5e9;
+            border: 2px solid #4caf50;
+            padding: 30px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        #successMessage h2 { color: #2e7d32; margin-top: 10px; }
+        #successMessage p { color: #555; font-size: 1.1em; }
+        .success-icon { font-size: 60px; color: #4caf50; margin-bottom: 15px; }
+        .important-note {
+            background: #fff;
+            padding: 15px;
+            border-left: 4px solid #ff9800;
+            margin: 20px 0;
+            text-align: left;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        
+        <header class="form-header">
+            <img src="logo.png" alt="Escudo La Lujaneta" class="logo">
+            <h1>La Lujaneta 2026</h1>
+            <p class="subtitle">Formulario Oficial de Inscripción</p>
+        </header>
+
+        <div class="form-card">
+            <div class="info-alert">
+                <i class="fas fa-info-circle"></i>
+                <div>
+                    <strong>INFORMACIÓN IMPORTANTE</strong>
+                    La peregrinación a Luján es un evento público y gratuito. El costo de esta inscripción cubre exclusivamente los servicios privados del grupo <strong>"La Lujaneta"</strong> (Kit, logística, asistencia médica y coordinación).
+                    <br><br>
+                    ⚠️ <strong>Sin el pago de la inscripción NO se generará el Código QR.</strong>
+                    <br>
+                    Sin QR, no se entregará el kit ni se podrá acceder a los servicios de apoyo del grupo.
+                </div>
+            </div>
+
+            <form id="registrationForm">
+                
+                <div class="section-title">1. DATOS PERSONALES</div>
+
+                <div class="form-group">
+                    <label>Nombre Completo *</label>
+                    <input type="text" id="fullName" name="fullName" required placeholder="Como figura en tu DNI">
+                </div>
+
+                <div class="row">
+                    <div class="form-group half">
+                        <label>Tipo *</label>
+                        <select id="docType" name="docType">
+                            <option value="DNI">DNI</option>
+                            <option value="Pasaporte">Pasaporte</option>
+                            <option value="Cedula">Cédula</option>
+                        </select>
+                    </div>
+                    <div class="form-group half">
+                        <label>Número de Documento *</label>
+                        <input type="number" id="dni" name="dni" required placeholder="Sin puntos">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Fecha de Nacimiento *</label>
+                    <input type="date" id="birthDate" name="birthDate" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Celular (con código de área) *</label>
+                    <input type="number" id="phone" name="phone" required placeholder="Ej: 11 5555 6666">
+                </div>
+
+                <div class="form-group">
+                    <label>Email (Te llegará el QR aquí) *</label>
+                    <input type="email" id="email" name="email" required placeholder="Asegúrate de que funcione bien">
+                </div>
+
+                <div class="section-title">2. CONTACTO DE EMERGENCIA</div>
+                
+                <div class="form-group">
+                    <label>Nombre del Contacto *</label>
+                    <input type="text" id="emergencyName" required placeholder="Ej: Mamá, Pareja, Hermano...">
+                </div>
+
+                <div class="form-group">
+                    <label>Teléfono del Contacto *</label>
+                    <input type="number" id="emergencyPhone" required placeholder="Ej: 11 4444 5555">
+                </div>
+
+                <div class="section-title">3. FICHA MÉDICA</div>
+
+                <div class="form-group">
+                    <label>¿Tenés alguna condición médica o tomas medicación? *</label>
+                    <div class="radio-options">
+                        <label class="radio-btn">
+                            <input type="radio" name="medicalCond" value="si" onclick="toggleField('medicalText', true)"> SÍ
+                        </label>
+                        <label class="radio-btn">
+                            <input type="radio" name="medicalCond" value="no" checked onclick="toggleField('medicalText', false)"> NO
+                        </label>
+                    </div>
+                    <textarea id="medicalText" class="hidden-box" placeholder="Por favor detalla qué condición o medicación..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>¿Tenés alergias (Comida, remedios, insectos)? *</label>
+                    <div class="radio-options">
+                        <label class="radio-btn">
+                            <input type="radio" name="allergies" value="si" onclick="toggleField('allergyText', true)"> SÍ
+                        </label>
+                        <label class="radio-btn">
+                            <input type="radio" name="allergies" value="no" checked onclick="toggleField('allergyText', false)"> NO
+                        </label>
+                    </div>
+                    <textarea id="allergyText" class="hidden-box" placeholder="Detalla tus alergias aquí..."></textarea>
+                </div>
+
+                <div class="section-title">4. DATOS DE LA PEREGRINACIÓN</div>
+
+                <div class="form-group">
+                    <label>Nivel de Experiencia *</label>
+                    <select id="experience" required>
+                        <option value="">Seleccionar...</option>
+                        <option value="FirstTimer">Es mi primera vez</option>
+                        <option value="1-2">Ya fui 1 o 2 veces</option>
+                        <option value="3-5">Soy recurrente (3-5 veces)</option>
+                        <option value="6+">Soy experto (+6 veces)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Estado Físico Actual *</label>
+                    <select id="fitness" required>
+                        <option value="">Seleccionar...</option>
+                        <option value="Low">Bajo (No entreno)</option>
+                        <option value="Medium">Medio (Entreno a veces)</option>
+                        <option value="High">Alto (Entreno siempre)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Selecciona desde dónde sales *</label>
+                    <select id="departure" required>
+                        <option value="">-- Elegir punto de partida --</option>
+                        
+                        <optgroup label="Zona Liniers">
+                            <option value="Liniers">Liniers (Caminata Completa)</option>
+                            <option value="Ciudadela">Ciudadela</option>
+                            <option value="Ramos Mejia">Ramos Mejia</option>
+                            <option value="Haedo">Haedo</option>
+                        </optgroup>
+
+                        <optgroup label="Zona Morón/Castelar">
+                            <option value="Moron">Moron</option>
+                            <option value="Castelar">Castelar</option>
+                            <option value="Ituzaingo">Ituzaingo</option>
+                            <option value="Padua">Padua</option>
+                        </optgroup>
+
+                        <optgroup label="Zona Merlo/Moreno">
+                            <option value="Merlo">Merlo</option>
+                            <option value="Paso del Rey">Paso del Rey</option>
+                            <option value="Moreno">Moreno</option>
+                            <option value="La Reja">La Reja</option>
+                            <option value="Francisco Alvarez">Francisco Alvarez</option>
+                        </optgroup>
+
+                        <optgroup label="Zona Lejana">
+                            <option value="Pablo Marin">Pablo Marin</option>
+                            <option value="Las Malvinas">Las Malvinas</option>
+                            <option value="General Rodriguez">General Rodriguez</option>
+                            <option value="La Fraternidad">La Fraternidad</option>
+                            <option value="Lezica y Torrezuri">Lezica y Torrezuri</option>
+                            <option value="Universidad de Lujan">Universidad de Lujan</option>
+                        </optgroup>
+                    </select>
+                </div>
+
+                <div class="section-title">5. PAGO Y COMPROBANTE</div>
+
+                <div class="payment-yellow-card">
+                    <h4>💸 Datos para Transferir</h4>
+                    <p style="margin-bottom: 10px; font-size: 0.9em; color: #666;">Realiza la transferencia antes de completar el formulario.</p>
+                    
+                    <div class="dashed-box">
+                        <p><strong>Alias:</strong> LA.LUJANETA.PAGO</p>
+                        <p><strong>CBU:</strong> 0000003100000000000000</p>
+                        <p><strong>Titular:</strong> Juan Pérez</p>
+                        <p><strong>Monto:</strong> $15.000</p>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Método de Pago *</label>
+                    <select id="paymentMethod" required>
+                        <option value="MercadoPago">MercadoPago / Transferencia</option>
+                        <option value="Efectivo">Efectivo (Coordinar con Staff)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Monto Abonado ($) *</label>
+                    <input type="number" id="amountPaid" placeholder="Ej: 15000" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Comprobante de Pago (Captura/Foto) *</label>
+                    <input type="file" id="paymentProof" name="paymentProof" accept="image/*" required>
+                    <p style="font-size: 0.8em; color: #dc3545; margin-top: 5px;">⚠️ Sin comprobante no podremos verificar tu pago ni enviarte el QR.</p>
+                </div>
+
+                <div class="terms-group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="term1" required>
+                        <label for="term1">Declaro bajo juramento que los datos son reales y que estoy apto físicamente para realizar la peregrinación.</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="term2" required>
+                        <label for="term2">Entiendo que sin el <strong>pago verificado NO recibiré el QR</strong>. Me comprometo a guardar el código QR (que llegará a mi correo) y presentarlo el día del evento para retirar mi kit y marcar asistencia.</label>
+                    </div>
+                </div>
+
+                <button type="submit" id="submitBtn">CONFIRMAR INSCRIPCIÓN</button>
+
+                <div id="status"></div>
+                
+                <div id="successMessage">
+                    <i class="fas fa-check-circle success-icon"></i>
+                    <h2>¡INSCRIPCIÓN ENVIADA!</h2>
+                    <p>Hemos recibido tus datos y comprobante correctamente.</p>
+                    
+                    <div class="important-note">
+                        <h4 style="margin-top:0; color:#e65100;">⚠️ PASOS SIGUIENTES:</h4>
+                        <ul style="padding-left: 20px; margin-bottom: 0; font-size: 0.95em;">
+                            <li>Nuestro equipo verificará tu pago (24-48hs).</li>
+                            <li>Al verificarse, recibirás tu <strong>CÓDIGO QR</strong> por email.</li>
+                            <li><strong>EL DÍA DEL EVENTO:</strong> Debes llevar el QR (en el celular o impreso) para retirar tu kit y subir a los micros.</li>
+                        </ul>
+                    </div>
+                    
+                    <p style="font-size: 0.9em; color: #777;">¿Dudas? Escríbenos por los canales oficiales.</p>
+                    
+                    <button onclick="window.location.reload()" style="background:#27ae60; color:white; border:none; padding:10px 20px; border-radius:5px; margin-top:15px; cursor:pointer;">
+                        Nueva Inscripción
+                    </button>
+                </div>
+
+            </form>
+        </div>
+        <br>
+        <p style="text-align: center; color: #aaa;">© 2026 La Lujaneta</p>
+    </div>
+
+    <script src="script.js"></script>
+    
+    <script>
+        function toggleField(fieldId, show) {
+            const field = document.getElementById(fieldId);
+            if (show) {
+                field.style.display = 'block';
+                field.focus();
+            } else {
+                field.style.display = 'none';
+                field.value = ''; 
+            }
+        }
+    </script>
+</body>
+</html>

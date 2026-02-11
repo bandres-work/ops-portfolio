@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Staff Lujaneta - Scanner V7 (Restart)</title>
+    
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;800&family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-main: #ffffff;
+            --primary: #007bff;
+            --success: #28a745;
+            --danger: #dc3545;
+            --warning: #ffc107;
+        }
+
+        body { 
+            background-color: var(--bg-color); color: var(--text-main); 
+            font-family: 'Open Sans', sans-serif; margin: 0; 
+            display: flex; flex-direction: column; height: 100vh; overflow: hidden; 
+        }
+
+        /* HEADER */
+        .header {
+            padding: 15px; background: rgba(0,0,0,0.8); 
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid #333; z-index: 10;
+        }
+        .header h2 { margin: 0; font-family: 'Montserrat', sans-serif; font-size: 1.2rem; }
+        .btn-close { color: #fff; font-size: 1.5rem; text-decoration: none; }
+
+        /* CÁMARA */
+        #reader { flex-grow: 1; background: #000; width: 100%; position: relative; }
+        video { object-fit: cover; width: 100% !important; height: 100% !important; }
+
+        /* BARRA DE BÚSQUEDA MANUAL */
+        .manual-search-bar {
+            background: #000; padding: 15px; display: flex; gap: 10px;
+            border-top: 1px solid #333; z-index: 15; justify-content: center;
+        }
+        .input-dni {
+            flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #555;
+            background: #222; color: white; font-size: 1rem; outline: none;
+        }
+        .input-dni:focus { border-color: var(--primary); }
+        
+        .btn-search {
+            background: var(--primary); color: white; border: none; padding: 0 20px;
+            border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center;
+        }
+
+        /* CAPA DE INICIO (Overlay) */
+        #setup-layer {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-color); z-index: 100;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .btn-start {
+            background: var(--primary); color: white; border: none; 
+            padding: 20px 40px; font-size: 1.5rem; border-radius: 50px; 
+            font-weight: bold; cursor: pointer; box-shadow: 0 0 20px rgba(0,123,255,0.5);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+
+        /* MODAL DE RESULTADOS */
+        #result-modal {
+            display: none; position: fixed; bottom: 0; left: 0; width: 100%;
+            background: var(--card-bg); border-radius: 20px 20px 0 0; 
+            box-shadow: 0 -5px 25px rgba(0,0,0,0.8); z-index: 200;
+            padding: 25px; box-sizing: border-box; transition: transform 0.3s;
+        }
+
+        .modal-header { font-family: 'Montserrat', sans-serif; font-size: 1.8rem; margin-bottom: 10px; font-weight: 800; text-align: center; }
+        .info-row { display: flex; justify-content: space-between; border-bottom: 1px solid #333; padding: 8px 0; font-size: 1.1rem; }
+        .label { color: #aaa; }
+        .value { font-weight: bold; }
+
+        /* ALERTAS */
+        .alert-box {
+            padding: 15px; border-radius: 10px; margin: 15px 0; text-align: center; font-weight: bold; display: none;
+        }
+        .alert-medical { background: rgba(220, 53, 69, 0.2); border: 2px solid var(--danger); color: #ff6b6b; }
+        
+        /* BOTONES DE ACCIÓN */
+        .btn-action { width: 100%; padding: 18px; border-radius: 12px; border: none; font-size: 1.2rem; font-weight: bold; margin-top: 10px; cursor: pointer; }
+        .btn-confirm { background: var(--success); color: white; display: none; }
+        .btn-cancel { background: #444; color: white; }
+
+        /* COLORES DE ESTADO */
+        .status-ok { color: var(--success); }
+        .status-error { color: var(--danger); }
+        .status-warn { color: var(--warning); }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h2><i class="fas fa-qrcode"></i> STAFF SCANNER</h2>
+        <a href="admin.html" class="btn-close"><i class="fas fa-times-circle"></i></a>
+    </div>
+
+    <div id="setup-layer">
+        <i class="fas fa-camera" style="font-size: 80px; color: #333; margin-bottom: 30px;"></i>
+        <button class="btn-start" onclick="iniciarSistema()">ACTIVAR CÁMARA</button>
+        <p id="loading-msg" style="color:#666; margin-top:20px;">Toque para iniciar</p>
+    </div>
+
+    <div id="reader"></div>
+
+    <div class="manual-search-bar">
+        <input type="number" id="input-manual" class="input-dni" placeholder="Ingresar DNI manual...">
+        <button class="btn-search" onclick="busquedaManual()">
+            <i class="fas fa-search"></i>
+        </button>
+    </div>
+
+    <div id="result-modal">
+        <div id="modal-icon" style="text-align: center; font-size: 50px; margin-bottom: 10px;"></div>
+        <div id="modal-title" class="modal-header">---</div>
+        
+        <div id="modal-body">
+            <div class="info-row">
+                <span class="label">Nombre:</span>
+                <span class="value" id="p-name">...</span>
+            </div>
+            <div class="info-row">
+                <span class="label">DNI:</span>
+                <span class="value" id="p-dni">...</span>
+            </div>
+
+            <div id="medical-alert" class="alert-box alert-medical">
+                <i class="fas fa-briefcase-medical"></i> <span id="med-text">ALERTA MÉDICA</span>
+            </div>
+        </div>
+
+        <button id="btn-entregar" class="btn-action btn-confirm">
+            <i class="fas fa-check-circle"></i> ENTREGAR KIT
+        </button>
+        
+        <button class="btn-action btn-cancel" onclick="cerrarModal()">
+            SEGUIR ESCANEANDO
+        </button>
+    </div>
+
+    <audio id="snd-success" src="https://actions.google.com/sounds/v1/cartoon/cartoon_boing.ogg"></audio>
+    <audio id="snd-error" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
+
+    <script>
+        // CONFIGURACIÓN
+        const S_URL = 'https://xsutpmbhvzuvjpwwyoli.supabase.co';
+        const S_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhzdXRwbWJodnp1dmpwd3d5b2xpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzNzUwNTMsImV4cCI6MjA4NTk1MTA1M30.ym7wCHRwpit-4OaHM9V3JSzbR-baH1WfEYIAFfbAgBo';
+        
+        let sbClient = null;
+        let html5QrCode = null;
+        
+        // --- 1. INICIAR SISTEMA ---
+        async function iniciarSistema() {
+            document.getElementById('loading-msg').innerText = "Verificando acceso...";
+            
+            try {
+                if (!window.supabase) throw new Error("Librería DB no cargada");
+                sbClient = window.supabase.createClient(S_URL, S_KEY);
+
+                // --- GUARDIA DE SEGURIDAD ---
+                const { data: { session } } = await sbClient.auth.getSession();
+                
+                if (!session) {
+                    alert("⚠️ Debes iniciar sesión primero.");
+                    window.location.href = 'login.html'; 
+                    return; 
+                }
+
+                document.getElementById('loading-msg').innerText = "Iniciando cámara...";
+
+                if (!window.Html5Qrcode) throw new Error("Librería QR no cargada");
+                html5QrCode = new Html5Qrcode("reader");
+
+                // Iniciamos la cámara por primera vez
+                await encenderCamara();
+                
+                document.getElementById('setup-layer').style.display = 'none';
+
+            } catch (err) {
+                alert("Error de inicio: " + err.message);
+                document.getElementById('loading-msg').innerText = "Fallo: Recarga la página";
+            }
+        }
+
+        // --- FUNCIÓN REUTILIZABLE: ENCENDER CÁMARA ---
+        async function encenderCamara() {
+            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+            try {
+                // Solo iniciamos si NO está escaneando ya
+                if(!html5QrCode.isScanning) {
+                    await html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess);
+                }
+            } catch (camError) {
+                console.warn("Error cámara:", camError);
+                // Si falla la cámara (ej: PC), no mostramos alerta molesta, el usuario usará manual.
+            }
+        }
+
+        // --- 2. AL ESCANEAR (ESTRATEGIA APAGAR Y PRENDER) ---
+        function onScanSuccess(decodedText) {
+            // 1. DETENEMOS LA CÁMARA INMEDIATAMENTE
+            // Esto evita que se congele la imagen, simplemente la apaga.
+            html5QrCode.stop().then(() => {
+                // 2. BUSCAMOS EN BASE DE DATOS
+                buscarEnBaseDeDatos(decodedText.trim());
+            }).catch(err => {
+                console.error("Error al detener cámara", err);
+                // Si falla al detener, buscamos igual
+                buscarEnBaseDeDatos(decodedText.trim());
+            });
+        }
+
+        // --- FUNCIÓN BÚSQUEDA MANUAL ---
+        function busquedaManual() {
+            const dni = document.getElementById('input-manual').value.trim();
+            if(!dni) return alert("Ingresa un DNI primero");
+            
+            // Si la cámara está prendida, la apagamos para que no interfiera
+            if(html5QrCode && html5QrCode.isScanning) {
+                html5QrCode.stop().then(() => {
+                    buscarEnBaseDeDatos(dni);
+                });
+            } else {
+                buscarEnBaseDeDatos(dni);
+            }
+        }
+
+        // --- 3. LÓGICA DE BÚSQUEDA ---
+        async function buscarEnBaseDeDatos(input) {
+            mostrarModal('loading', 'Buscando...', 'Espere un momento');
+            
+            let reg = null;
+            let participant = null;
+
+            try {
+                // QR (Largo) o DNI (Corto)
+                if (input.length > 20) {
+                    const { data: r } = await sbClient.from('registrations').select('*').eq('registration_id', input).maybeSingle();
+                    if (r) {
+                        reg = r;
+                        const { data: p } = await sbClient.from('participants').select('*').eq('participant_id', reg.participant_id).maybeSingle();
+                        participant = p;
+                    }
+                } else {
+                    const { data: p } = await sbClient.from('participants').select('*').eq('doc_number', input).maybeSingle();
+                    if (p) {
+                        participant = p;
+                        const { data: r } = await sbClient.from('registrations').select('*').eq('participant_id', participant.participant_id).maybeSingle();
+                        reg = r;
+                    }
+                }
+
+                // RESULTADOS
+                if (!participant) {
+                    mostrarModal('error', 'NO ENCONTRADO', 'No existe en la base de datos.');
+                    playSound('error');
+                    return;
+                }
+
+                if (!reg) {
+                    mostrarModal('error', 'SIN INSCRIPCIÓN', `El usuario ${participant.full_name} existe pero NO tiene inscripción.`);
+                    document.getElementById('p-name').innerText = participant.full_name;
+                    document.getElementById('p-dni').innerText = participant.doc_number;
+                    playSound('error');
+                    return;
+                }
+
+                // VALIDACIONES
+                if (reg.checked_in) {
+                    mostrarModal('warn', 'YA RETIRÓ', 'Este kit ya fue entregado.');
+                    document.getElementById('p-name').innerText = participant.full_name;
+                    document.getElementById('p-dni').innerText = participant.doc_number;
+                    playSound('error');
+                    return;
+                }
+
+                if (reg.payment_status !== 'Verified') {
+                    mostrarModal('error', 'PAGO NO VERIFICADO', 'No entregar kit.');
+                    document.getElementById('p-name').innerText = participant.full_name;
+                    document.getElementById('p-dni').innerText = participant.doc_number;
+                    playSound('error');
+                    return;
+                }
+
+                // CONFLICTIVO
+                if (participant.is_flagged) {
+                    mostrarModal('error', '⛔ ALERTA CONDUCTA', 'Participante marcado como CONFLICTIVO.');
+                    document.getElementById('med-text').innerText = "MOTIVO: " + (participant.flag_notes || "Sin detalles");
+                    document.getElementById('medical-alert').className = 'alert-box alert-medical'; 
+                    document.getElementById('medical-alert').style.borderColor = 'black'; 
+                    document.getElementById('medical-alert').style.backgroundColor = '#222'; 
+                    document.getElementById('medical-alert').style.color = 'red'; 
+                    document.getElementById('medical-alert').style.display = 'block';
+                    
+                    document.getElementById('p-name').innerText = participant.full_name;
+                    document.getElementById('p-dni').innerText = participant.doc_number;
+                    playSound('error');
+                }
+
+                // ÉXITO
+                mostrarModal('success', 'HABILITADO', 'Pago verificado');
+                playSound('success');
+                document.getElementById('p-name').innerText = participant.full_name;
+                document.getElementById('p-dni').innerText = participant.doc_number;
+
+                // Alerta Médica (Si no es conflictivo)
+                if (participant.medical_flag && !participant.is_flagged) {
+                    document.getElementById('medical-alert').className = 'alert-box alert-medical';
+                    document.getElementById('medical-alert').style.borderColor = '#dc3545';
+                    document.getElementById('medical-alert').style.backgroundColor = 'rgba(220, 53, 69, 0.2)';
+                    document.getElementById('medical-alert').style.color = '#ff6b6b';
+                    document.getElementById('medical-alert').style.display = 'block';
+                    document.getElementById('med-text').innerText = participant.medical_notes || 'Alerta médica';
+                } else if (!participant.is_flagged) {
+                    document.getElementById('medical-alert').style.display = 'none';
+                }
+
+                const btn = document.getElementById('btn-entregar');
+                btn.style.display = 'block';
+                btn.onclick = () => procesarEntrega(reg.registration_id);
+
+            } catch (e) {
+                mostrarModal('error', 'ERROR SISTEMA', e.message);
+                playSound('error');
+            }
+        }
+
+        // --- 4. ENTREGAR KIT ---
+        async function procesarEntrega(regId) {
+            if(!confirm("¿Confirmar entrega de kit?")) return;
+
+            const { error } = await sbClient
+                .from('registrations')
+                .update({ 
+                    checked_in: true,
+                    kit: 'Delivered',
+                    checked_in_at: new Date().toISOString()
+                })
+                .eq('registration_id', regId);
+
+            if (error) {
+                alert("Error guardando: " + error.message);
+            } else {
+                alert("✅ KIT ENTREGADO CON ÉXITO");
+                cerrarModal(); // Esto reiniciará la cámara
+            }
+        }
+
+        // --- UI UTILS ---
+        function mostrarModal(tipo, titulo, cuerpo) {
+            const modal = document.getElementById('result-modal');
+            const icon = document.getElementById('modal-icon');
+            const titleEl = document.getElementById('modal-title');
+            const btnEntregar = document.getElementById('btn-entregar');
+            
+            modal.style.display = 'block';
+            btnEntregar.style.display = 'none';
+            document.getElementById('medical-alert').style.display = 'none';
+            document.getElementById('p-name').innerText = '...';
+            document.getElementById('p-dni').innerText = '...';
+
+            titleEl.innerText = titulo;
+
+            if (tipo === 'loading') {
+                icon.innerHTML = '<i class="fas fa-spinner fa-spin status-warn"></i>';
+                titleEl.className = 'modal-header status-warn';
+            } 
+            else if (tipo === 'success') {
+                icon.innerHTML = '<i class="fas fa-check-circle status-ok"></i>';
+                titleEl.className = 'modal-header status-ok';
+            } 
+            else if (tipo === 'error') {
+                icon.innerHTML = '<i class="fas fa-times-circle status-error"></i>';
+                titleEl.className = 'modal-header status-error';
+                if(cuerpo) document.getElementById('p-name').innerText = cuerpo; 
+            } 
+            else if (tipo === 'warn') {
+                icon.innerHTML = '<i class="fas fa-exclamation-triangle status-warn"></i>';
+                titleEl.className = 'modal-header status-warn';
+            }
+        }
+
+        // --- REINICIAR AL CERRAR ---
+        function cerrarModal() {
+            document.getElementById('result-modal').style.display = 'none';
+            document.getElementById('input-manual').value = "";
+            
+            // AQUÍ ESTÁ LA MAGIA: Al cerrar, encendemos la cámara de nuevo.
+            encenderCamara();
+        }
+
+        function playSound(type) {
+            const id = type === 'success' ? 'snd-success' : 'snd-error';
+            document.getElementById(id).play().catch(e => {});
+        }
+    </script>
+</body>
+</html>
