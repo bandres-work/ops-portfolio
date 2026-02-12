@@ -81,5 +81,5 @@ This repository is intended to be read, not executed.
 ## Contact
 
 For questions or context related to this portfolio:
-- LinkedIn: linkedin.com/guzmanbrian-ops
+- LinkedIn: linkedin.com/bandres-ops
 
