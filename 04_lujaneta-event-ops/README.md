@@ -5,100 +5,254 @@
 ![Security](https://img.shields.io/badge/Security-RLS%20Protected-red)
 ![Stack](https://img.shields.io/badge/Tech-Supabase%20%7C%20JS%20Vanilla%20%7C%20PostgreSQL-3ecf8e)
 
-## 📌 Project Overview
+La Lujaneta is a pilgrimage group managing 100+ participants per event.
+This system was built to improve operational control, reduce manual errors, and accelerate on-site check-in during large-scale pilgrimages.
 
-**La Lujaneta Ops** is a specialized, full-stack Event Operations System designed to manage the logistics, security, and access control for large-scale pilgrimages in Argentina.
+The objective is not only registration management, but controlled validation of attendance, payment auditing, kit distribution, and behavioral risk tracking across events.
 
-Unlike standard form builders, this system functions as a tailored **Operational CRM** that handles the entire participant lifecycle: from identity verification and payment auditing to high-speed biometric/QR access control in the field.
+The system is designed with operational reliability, auditability, and staff safety as primary principles.
 
-**Key Engineering Highlight:** The system features a **"Zero-Friction" Access Control** architecture (Scanner V7) with hybrid inputs (Camera/Manual), "Anti-Freeze" camera logic for low-end devices, and a persistent **Conflictive User Blacklist** to ensure staff safety.
+Operational Flow
+1. Participant Registration
 
----
+Participants complete a mobile-first registration form providing:
 
-## 🚀 Key Modules & Features
+Personal identification (DNI / document number)
 
-### 1. Smart Registration Portal (`index.html`)
-A mobile-first frontend optimized for high-conversion data entry and data integrity.
-* **Identity Resolution:** The system checks the `doc_number` against the historical `participants` database before creating a record. This prevents duplicates and links new registrations to existing medical histories.
-* **Conditional Logic:** Dynamic UI that only requests specific medical/allergy details if the user toggles the corresponding flags.
-* **Secure Storage:** Direct integration with **Supabase Storage** for secure, UUID-linked payment proof uploads.
+Emergency contact details
 
-### 2. Operations Dashboard (`admin.html`)
-A "God Mode" protected panel for the Operations and Finance teams.
-* **Real-Time KPIs:** Live monitoring of Total Registrations, Verified Revenue, and Pending Audits.
-* **Visual Auditing:** A modal interface to inspect payment receipts side-by-side with user data for rapid Approve/Reject decisions.
-* **Behavioral Risk Management (Blacklist):** Staff can flag participants as "Conflictive" (e.g., for past aggression). This flag is **persistent** across years/events and triggers immediate security alerts upon future interactions.
-* **Data Export:** One-click generation of sanitized `.csv` reports for logistics planning (transport, t-shirt sizes).
+Medical conditions / allergies
 
-### 3. Field Scanner V7 (`scanner.html`)
-A robust PWA-like web scanner designed for high-stress, low-connectivity environments.
-* **Hybrid Input System:**
-    * **Camera:** High-speed UUID QR scanning using `html5-qrcode`.
-    * **Manual Fallback:** Dedicated DNI search for users with broken screens or dead batteries.
-* **Intelligent Validation Logic:**
-    1.  **Identity Check:** Does the user exist?
-    2.  **Registration Check:** Is the user registered for *this specific event*?
-    3.  **Status Check:** Has the kit already been delivered? (Prevents double-dipping).
-    4.  **Security Check:** **Is the user flagged as Conflictive?** (Triggers a severe Black/Red alert).
-    5.  **Health Check:** Does the user have critical medical conditions? (Triggers a Red alert).
-* **"Anti-Freeze" Logic:** A custom algorithm that automatically manages the camera lifecycle (Stop/Start) to prevent browser freezes on mobile devices after scanning.
+Physical activity habits
 
----
+Payment proof upload
 
-## 🛠️ Technical Architecture
+The system performs identity resolution against historical participant records to prevent duplicate profiles and preserve multi-year history.
 
-The system is built on a **Serverless / BaaS (Backend as a Service)** architecture to maximize scalability and minimize maintenance costs.
+Payment receipts are securely stored and linked via UUID in Supabase Storage.
 
-| Component | Technology | Description |
-| :--- | :--- | :--- |
-| **Frontend** | Vanilla JS (ES6+) | No frameworks, no build steps. Optimized for raw performance (<1s load time). |
-| **Backend** | Supabase | Provides Authentication, Database, and Storage APIs. |
-| **Database** | PostgreSQL 15 | Relational model with strong data integrity (Foreign Keys, Constraints). |
-| **Security** | RLS (Row Level Security) | Database policies ensure public users can only `INSERT`, while only authenticated Staff can `SELECT`/`UPDATE`. |
-| **Scanning** | Html5-Qrcode | Browser-based barcode recognition library. |
+2. Administrative Verification (Back Office)
 
-### Database Schema (Simplified)
+Authorized staff members authenticate using Supabase Authentication (email + password).
 
-The data model separates the *Person* from the *Event Registration* to allow multi-year history tracking.
+Without valid session authentication, no administrative interface is accessible.
 
-* **`participants`**: (The User) `id`, `doc_number`, `full_name`, `medical_notes`, `is_flagged` (Blacklist), `flag_notes`.
-* **`registrations`**: (The Link) `id`, `participant_id`, `event_id`, `payment_status` (ENUM), `kit_status` (ENUM), `checked_in`.
-* **`payments`**: (The Transaction) `id`, `registration_id`, `proof_url`, `amount`, `status`.
+Within the Operations Dashboard:
 
----
+New registrations are reviewed.
 
-## 🛡️ Security & Access Control
+Payment receipts are visually audited.
 
-* **Session Guard:** Critical operational files (`admin.html`, `scanner.html`) implement a strict session check on load. If `supabase.auth.getSession()` returns null, the user is forcibly redirected to the Login page.
-* **Role-Based Logic:** The dashboard UI adapts based on the user's role. "Approve/Reject" buttons are removed for read-only staff.
-* **Input Sanitization:** All database interactions use parameterized Supabase client methods to prevent SQL Injection.
+Registrations are either Approved or Rejected.
 
----
+Once approved, the system generates and sends a unique QR code to the participant’s registered email.
 
-## 📥 Setup & Installation
+Access control is enforced both at the UI level and at the database level through Row Level Security (RLS) policies.
 
-1.  **Clone the Repository:**
-    ```bash
-    git clone [https://github.com/bandres-ops/ops-portfolio.git](https://github.com/bandres-ops/ops-portfolio.git)
-    ```
+Public users can INSERT registration data only.
+Only authenticated staff can SELECT or UPDATE operational data.
 
-2.  **Supabase Configuration:**
-    * Create a new project on [Supabase](https://supabase.com).
-    * Run the `database_setup.sql` script (included in repo) in the SQL Editor to create tables and RLS policies.
-    * Create a public storage bucket named `payments`.
+3. Field Check-In & Kit Distribution
 
-3.  **Environment Variables:**
-    * Open `script.js`, `admin.js`, and `scanner.html`.
-    * Replace `const SUPABASE_URL` and `const SUPABASE_KEY` with your project's API credentials.
+During the pilgrimage event, authorized staff log in to the system and access the Scanner module.
 
-4.  **Deploy:**
-    * The project is static. You can drag and drop the folder into **Netlify** or serve it via **GitHub Pages**.
+The Scanner performs the following validation pipeline:
 
----
+Identity existence check
+
+Event registration verification
+
+Payment approval status validation
+
+Duplicate kit prevention check
+
+Behavioral risk flag detection
+
+Medical condition visibility alert
+
+If all checks pass, staff can confirm kit delivery with a single action.
+
+The system prevents double scanning and duplicate kit delivery by validating the current registration state before allowing confirmation.
+
+Field Reliability Features
+
+The Scanner module is designed for real-world operational constraints:
+
+Hybrid validation input:
+
+QR camera scanning
+
+Manual DNI fallback (in case of damaged phones, battery issues, or scanning failure)
+
+Anti-freeze camera lifecycle management:
+Prevents mobile browser lockups by automatically controlling camera stop/start behavior after scan events.
+
+This ensures continued usability under high participant throughput.
+
+Behavioral Risk Management
+
+Staff can mark a participant as flagged (problematic behavior, prior incidents, etc.).
+
+This flag:
+
+Persists across events and years
+
+Triggers immediate alert visibility during future interactions
+
+Supports staff safety and operational control
+
+Enables reservation of admission rights when necessary
+
+Behavioral data is stored at participant level, not per event, ensuring long-term traceability.
+
+System Architecture
+Frontend
+
+Vanilla JavaScript (ES6+)
+
+No frameworks, no build step
+
+Static deployment
+
+Optimized for low overhead and fast load times
+
+Backend
+
+Supabase (Authentication, PostgreSQL, Storage)
+
+Serverless architecture
+
+No infrastructure management required
+
+Database
+
+PostgreSQL 15 with:
+
+Relational separation of participants and registrations
+
+Foreign key constraints
+
+ENUM-based status control
+
+Strong data integrity enforcement
+
+Security
+
+Supabase Authentication for staff access
+
+Strict session validation on protected files (admin.html, scanner.html)
+
+Row Level Security policies enforcing:
+
+Public INSERT-only access
+
+Authenticated staff SELECT/UPDATE permissions
+
+Role-based UI behavior
+
+Access control is enforced at the database level, not only through frontend logic.
+
+Data Model Overview
+
+participants
+
+id
+
+doc_number
+
+full_name
+
+medical_notes
+
+is_flagged
+
+flag_notes
+
+registrations
+
+id
+
+participant_id
+
+event_id
+
+payment_status
+
+kit_status
+
+checked_in
+
+payments
+
+id
+
+registration_id
+
+proof_url
+
+amount
+
+status
+
+The separation between Participant and Registration enables:
+
+Multi-year event tracking
+
+Financial audit traceability
+
+Persistent behavioral flags
+
+Clean relational design
+
+Operational Risk Mitigation
+
+The system explicitly mitigates the following risks:
+
+Duplicate participant profiles → identity resolution by document number
+
+Duplicate kit delivery → registration state validation
+
+Unauthorized staff actions → authentication + RLS enforcement
+
+Aggressive or conflictive participants → persistent behavioral flag
+
+Scanner failure → manual DNI fallback
+
+Mobile browser freezing → controlled camera lifecycle management
+
+Operational control is prioritized over feature density.
+
+Deployment Model
+
+The application is statically deployed (Netlify / GitHub Pages).
+Backend services are fully managed (Supabase).
+
+This architecture:
+
+Minimizes operational maintenance
+
+Eliminates infrastructure management
+
+Scales with managed backend services
+
+Reduces operational cost overhead
+
+Design Philosophy
+
+This system was built with an operational mindset:
+
+Reliability over complexity
+
+Control over automation
+
+Database-enforced security over UI-only restrictions
+
+Explicit risk mitigation over reactive fixes
+
+The objective is structured event control, not generic form handling.
 
 ## 🔮 Future Roadmap
 
-* **Automated Emails:** Implement Supabase Edge Functions to send the QR code via email immediately upon payment verification.
 * **Offline Mode:** Implement Service Workers (PWA) to allow the scanner to cache database subsets and function without internet connectivity.
 * **Metrics Dashboard:** Advanced data visualization for "Peak Arrival Times" and revenue forecasting.
 
@@ -107,6 +261,7 @@ The data model separates the *Person* from the *Event Registration* to allow mul
 <p align="center">
   Built by <strong>bandres-ops</strong>
 </p>
+
 
 
 
