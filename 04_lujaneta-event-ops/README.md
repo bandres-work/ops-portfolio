@@ -105,7 +105,8 @@ The data model separates the *Person* from the *Event Registration* to allow mul
 ---
 
 <p align="center">
-  Built by <strong>bandres-work</strong>
+  Built by <strong>bandres-ops</strong>
 </p>
+
 
 
