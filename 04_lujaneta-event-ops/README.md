@@ -79,7 +79,7 @@ The data model separates the *Person* from the *Event Registration* to allow mul
 
 1.  **Clone the Repository:**
     ```bash
-    git clone [https://github.com/bandres-work/ops-portfolio.git](https://github.com/bandres-work/ops-portfolio.git)
+    git clone [https://github.com/bandres-ops/ops-portfolio.git](https://github.com/bandres-ops/ops-portfolio.git)
     ```
 
 2.  **Supabase Configuration:**
@@ -107,4 +107,5 @@ The data model separates the *Person* from the *Event Registration* to allow mul
 <p align="center">
   Built by <strong>bandres-work</strong>
 </p>
+
 
